@@ -90,7 +90,7 @@ def debug():
     data = DataFrame(data)
     data = data[data.columns[1:-1]]
     types = [meta[name] for name in meta.names()[1:-1]]
-    hac = HAC(data, types)
+    hac = HAC(data, types, False)
     err = hac.run(5)
     print 'err', err
     for c in hac.clusters:
