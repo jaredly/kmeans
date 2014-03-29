@@ -20,7 +20,7 @@ from scipy.spatial.distance import cdist
 from scipy.io.arff import loadarff
 from pandas import DataFrame
 from numpy import array
-import numpy
+import numpy as np
 import docopt
 
 class KMeans:
@@ -30,6 +30,32 @@ class KMeans:
         self.random = random
         # init
         self.centroids = []
+        if random:
+            ixs = np.random.choice(data.index, k)
+        else:
+            ixs = data.index[:k]
+        self.centroids = [data.loc[i] for i in ixs]
+
+    def step(self):
+        groups = [[] for c in self.centroids]
+        for i in self.data.index:
+            p = self.data.loc[i]
+            best = None
+            for i, c in enumerate(self.centroids):
+                dst = distance(c, p)
+                if best is None or dst < best[1]:
+                    best = i, dst
+            groups[best[0]].append(p)
+        news = []
+        change = 0
+        for i, group in enumerate(groups):
+            newc = avg_points(group)
+            change += dst(self.centroids[i], newc)
+            news.append(newc)
+        self.centroids = map(avg_points, groups)
+
+    def run(self):
+        while True:
 
 def run_kmeans(fname, k=4, random=False):
     data, meta = loadarff(fname)
