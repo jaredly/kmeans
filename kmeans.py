@@ -24,50 +24,7 @@ import numpy as np
 import docopt
 import math
 
-def avg_ones(ones, t):
-    if t == 'numeric':
-        real = [x for x in ones if not np.isnan(x)]
-        if not real:
-            return np.nan
-        return sum(real)/len(real)
-    if t == 'nominal':
-        counts = {}
-        for i in ones:
-            if not i in counts:counts[i] = 1
-            else: counts[i] += 1
-        items = sorted(counts.items(), (lambda x,y:y[1]-x[1]))
-        print items
-        if items[0][0] == '?' and len(items) > 1:
-            return items[1][0]
-        return items[0][0]
-    raise Exception("Invalid type?" + t)
-
-def avg_points(points, types):
-    return [avg_ones(ones, t) for ones, t in zip(zip(*points), types)]
-
-def distance(a, b, types):
-    total = 0
-    for m, n, t in zip(a,b,types):
-        if t == 'numeric':
-            if np.isnan(m) or np.isnan(n):
-                total += 1
-            else:
-                total += (m-n)**2
-        elif t == 'nominal':
-            if '?' in (m, n) or m != n:
-                total += 1
-        else:
-            raise Exception('unknown {} {} {}'.format(t, m, n))
-    return math.sqrt(total)
-
-def closest(inst, cents, types):
-    best = None
-    for ix, c in enumerate(cents):
-        dst = distance(c, inst, types)
-        # print dst
-        if best is None or dst < best[1]:
-            best = ix, dst
-    return best
+from utils import *
 
 class KMeans:
     def __init__(self, data, types, k, random, threshhold=0):
@@ -135,7 +92,7 @@ def debug():
     data, meta = loadarff('./laborWithID.arff')
     data = DataFrame(data)
     data = data[data.columns[1:-1]]
-    types = [meta[name][0] for name in meta.names()[1:-1]]
+    types = [meta[name] for name in meta.names()[1:-1]]
     means = KMeans(data, types, 5, random=False)
     iters = means.run()
     print iters
@@ -146,7 +103,7 @@ def debug():
 def run_kmeans(fname, k, random=False):
     data, meta = loadarff('./laborWithID.arff')
     data = DataFrame(data)
-    types = [meta[name][0] for name in meta.names()]
+    types = [meta[name] for name in meta.names()]
     means = KMeans(data, types, k, random=random)
     iters = means.run()
     print iters
